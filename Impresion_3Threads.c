@@ -23,7 +23,7 @@
 #define TRUE    1
 #define FALSE   0
 
-#define MAX_ELEMENTS_IN_QUEUE   4
+#define MAX_ELEMENTS_IN_QUEUE   5
 
 #define PRINTERS_AMOUNT     2
 
@@ -45,7 +45,7 @@ int queueFull = FALSE;
 int printingOngoing = FALSE;
 
 int isQueueFull() {
-    return elementsInQueue + 1 > MAX_ELEMENTS_IN_QUEUE;
+    return elementsInQueue + 3 > MAX_ELEMENTS_IN_QUEUE;
 }
 
 void * computer_1() {
