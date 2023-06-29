@@ -19,95 +19,109 @@
 
 // ============ Colored Text End ===========
 
-#define  ONE_MS    	1000	   // One mili sec in micro Seconds
+#define  ONE_MS    	1000	   // Un milisegundo 
 #define TRUE    1
 #define FALSE   0
 
 #define MAX_ELEMENTS_IN_QUEUE   5
-
 #define PRINTERS_AMOUNT     2
 
-// Ubicacion del file donde se va a escribir. cmd: 'tty' para ver la terminal.
-#define FILE_LOCATION   "/dev/pts/2"
-
-#define FILE_LOCATION2  "/dev/pts/3"
+//  Ubicaciones de las terminales donde se va a escribir. cmd: 'tty' para ver la terminal.
+//  Terminal para printer1.
+#define FILE_LOCATION   "/dev/pts/4"
+//  Terminal para printer2.
+#define FILE_LOCATION2  "/dev/pts/5"
 
 
 FILE *file1;
 FILE *file2;
-int filesCounter = 0;
 
 pthread_mutex_t accessPrintQueue = PTHREAD_MUTEX_INITIALIZER;
-
 Queue queueForPrint;
 int elementsInQueue = 0;
-int queueFull = FALSE;
+
 int printingOngoing = FALSE;
 
 int isQueueFull() {
+    // Devuelve que está lleno antes de hacerlo para tener un margen de error.
     return elementsInQueue + 3 > MAX_ELEMENTS_IN_QUEUE;
 }
 
 void * computer_1() {
     while(1) {
+        int fileSent = FALSE;
 
-        // TryLock returns 0 if successfull.
-        // We should evaluate queueFull first to avoid locking without entering the condition.
-        if (!isQueueFull() && !pthread_mutex_lock(&accessPrintQueue)) {
-            printf(MAGENTA_TEXT "Computadora 1: enviando archivo...\n");
+        // El fileSent hace que el hilo para imprimir espere a que se haga un lugar para enviarlo. 
+        while(fileSent == FALSE) {
+            // Debemos evaluar queueFull antes para evitar bloquear el acceso si la cola esta llena.
+            // mutex_lock espera que se destrabe y devuelve 0 cuando consigue el lock.
+            if (!isQueueFull() && !pthread_mutex_lock(&accessPrintQueue)) {
+                printf(MAGENTA_TEXT "Computadora 1: enviando archivo...\n");
 
-            // Logic to send the file.
-            char textToPrint[] = MAGENTA_TEXT "Texto proveniente de Computadora_1.";
-            enqueue(&queueForPrint, textToPrint);
-            elementsInQueue += 1;
+                // Lógica para enviar el archivo.
+                char textToPrint[] = MAGENTA_TEXT "Texto proveniente de Computadora_1.";
+                enqueue(&queueForPrint, textToPrint);
+                elementsInQueue += 1;
 
-            pthread_mutex_unlock(&accessPrintQueue);
+                pthread_mutex_unlock(&accessPrintQueue);
+                fileSent = TRUE;
+            }
         }
 
-        // Computer does something else
-        sleep(1);
+        // El sleep simula un tiempo en el que la computadora no solicita otra impresión.
+        sleep(rand() % 10);
     }
 }
 
 void * computer_2() {
     while(1) {
+        int fileSent = FALSE;
 
-        // TryLock returns 0 if successfull.
-        // We should evaluate queueFull first to avoid locking without entering the condition.
-        if (!isQueueFull() && !pthread_mutex_lock(&accessPrintQueue)) {
-            printf(YELLOW_TEXT "Computadora 2: enviando archivo...\n");
+        // El fileSent hace que el hilo para imprimir espere a que se haga un lugar para enviarlo. 
+        while(fileSent == FALSE) {
+            // Debemos evaluar queueFull antes para evitar bloquear el acceso si la cola esta llena.
+            // mutex_lock espera que se destrabe y devuelve 0 cuando consigue el lock.
+            if (!isQueueFull() && !pthread_mutex_lock(&accessPrintQueue)) {
+                printf(YELLOW_TEXT "Computadora 2: enviando archivo...\n");
 
-            // Logic to send the file.
-            char textToPrint[] =  YELLOW_TEXT "Texto proveniente de Computadora_2.";
-            enqueue(&queueForPrint, textToPrint);
-            elementsInQueue += 1;
+                // Lógica para enviar el archivo.
+                char textToPrint[] = YELLOW_TEXT "Texto proveniente de Computadora_2.";
+                enqueue(&queueForPrint, textToPrint);
+                elementsInQueue += 1;
 
-            pthread_mutex_unlock(&accessPrintQueue);
+                pthread_mutex_unlock(&accessPrintQueue);
+                fileSent = TRUE;
+            }
         }
 
-        // Computer does something else
-        sleep(1);
+        // El sleep simula un tiempo en el que la computadora no solicita otra impresión.
+        sleep(rand() % 10);
     }
 }
 
 void * computer_3() {
     while(1) {
+        int fileSent = FALSE;
 
-        // TryLock returns 0 if successfull.
-        // We should evaluate queueFull first to avoid locking without entering the condition.
-        if (!isQueueFull() && !pthread_mutex_lock(&accessPrintQueue)) {
-            printf(GREEN_TEXT "Computadora 3: enviando archivo...\n");
+        // El fileSent hace que el hilo para imprimir espere a que se haga un lugar para enviarlo. 
+        while(fileSent == FALSE) {
+            // Debemos evaluar queueFull antes para evitar bloquear el acceso si la cola esta llena.
+            // mutex_lock espera que se destrabe y devuelve 0 cuando consigue el lock.
+            if (!isQueueFull() && !pthread_mutex_lock(&accessPrintQueue)) {
+                printf(GREEN_TEXT "Computadora 3: enviando archivo...\n");
 
-            // Logic to send the file.
-            char textToPrint[] = GREEN_TEXT "Texto proveniente de Computadora_3.";
-            enqueue(&queueForPrint, textToPrint);
-            elementsInQueue += 1;
+                // Lógica para enviar el archivo.
+                char textToPrint[] = GREEN_TEXT "Texto proveniente de Computadora_3.";
+                enqueue(&queueForPrint, textToPrint);
+                elementsInQueue += 1;
 
-            pthread_mutex_unlock(&accessPrintQueue);
+                pthread_mutex_unlock(&accessPrintQueue);
+                fileSent = TRUE;
+            }
         }
 
-        // Computer does something else
-        sleep(1);
+        // El sleep simula un tiempo en el que la computadora no solicita otra impresión.
+        sleep(rand() % 10);
     }
 }
 
@@ -119,7 +133,7 @@ void * printer1() {
             
             printingOngoing = TRUE;
 
-            printf(RED_TEXT "Printer1: recibiendo archivo...\n");
+            printf(BLUE_TEXT "***P*** Printer1: recibiendo archivo...\n");
 
             // "w" para abrir el archivo para escribir.
             file1 = fopen(FILE_LOCATION, "w");
@@ -130,7 +144,7 @@ void * printer1() {
                 elementsInQueue -= 1;
                 pthread_mutex_unlock(&accessPrintQueue);
 
-                printf(WHITE_TEXT "Printing1 ongoing.\n");
+                printf(BLUE_TEXT "***P*** Printing1 ongoing.\n");
                 for (int i = 0; currentPrint[i] != '\0'; i++) {
                     fprintf(file1, "%c", currentPrint[i]);
                     fflush(file1);
@@ -150,7 +164,7 @@ void * printer2() {
 
             printingOngoing = TRUE;
 
-            printf(CYAN_TEXT "Printer2: recibiendo archivo...\n");
+            printf(CYAN_TEXT "***P*** Printer2: recibiendo archivo...\n");
 
             // "w" para abrir el archivo para escribir.
             file2 = fopen(FILE_LOCATION2, "w");
@@ -161,7 +175,7 @@ void * printer2() {
                 elementsInQueue -= 1;
                 pthread_mutex_unlock(&accessPrintQueue);
 
-                printf(WHITE_TEXT "Printing2 ongoing.\n");
+                printf(CYAN_TEXT "***P*** Printing2 ongoing.\n");
                 for (int i = 0; currentPrint[i] != '\0'; i++) {
                     fprintf(file2, "%c", currentPrint[i]);
                     fflush(file2);
@@ -181,19 +195,19 @@ int main () {
     initializeQueue(&queueForPrint);
 
     pthread_create(&computer_1Id, NULL, computer_1, NULL);
-    printf(BLUE_TEXT "Created thread computer_1.\n");
+    printf(WHITE_TEXT "Created thread computer_1.\n");
 
     pthread_create(&computer_2Id, NULL, computer_2, NULL);
-    printf(BLUE_TEXT "Created thread computer_2.\n");
+    printf(WHITE_TEXT "Created thread computer_2.\n");
 
     pthread_create(&computer_3Id, NULL, computer_3, NULL);
-    printf(BLUE_TEXT "Created thread computer_3.\n");
+    printf(WHITE_TEXT "Created thread computer_3.\n");
 
     pthread_create(&printer1Id, NULL, printer1, NULL);
-    printf(BLUE_TEXT "Created thread printer1.\n" WHITE_TEXT);
+    printf(WHITE_TEXT "Created thread printer1.\n");
 
     pthread_create(&printer2Id, NULL, printer2, NULL);
-    printf(BLUE_TEXT "Created thread printer2.\n" WHITE_TEXT);
+    printf(WHITE_TEXT "Created thread printer2.\n");
 
     pthread_join(computer_1Id, NULL);
     pthread_join(computer_2Id, NULL);
